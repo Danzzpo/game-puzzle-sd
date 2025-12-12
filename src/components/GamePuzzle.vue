@@ -1,50 +1,27 @@
 <script setup>
-import { ref, computed, onUnmounted, onMounted } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 
-const gameState = ref('menu');
+// --- STATE GAME ---
+const gameState = ref('menu'); // 'menu', 'playing', 'won'
 const gridSize = ref(3);
 const moves = ref(0);
 const timer = ref(0);
 let timerInterval = null;
 
-const imageSrc = 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600&h=600&fit=crop';
+// LINK GAMBAR STABIL (Unsplash)
+const imageSrc = 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=800&h=800&fit=crop';
 
 const pieces = ref([]);
-// State untuk Drag (Desktop) dan Tap (Mobile)
 const isDragging = ref(null);
-const selectedPieceIndex = ref(null); // Untuk fitur Tap di HP
+const selectedPiece = ref(null); // Variabel untuk fitur "Ketuk" di HP
 
-// Ukuran Board Dinamis (Default 400, nanti berubah sesuai layar)
-const boardSize = ref(400);
-
-// --- RESPONSIVE LOGIC ---
-const updateBoardSize = () => {
-  const width = window.innerWidth;
-  // Jika layar kecil (HP), kurangi padding (misal lebar layar - 40px)
-  // Jika layar besar, tetap 400px
-  if (width < 500) {
-    boardSize.value = width - 60;
-  } else {
-    boardSize.value = 400;
-  }
-};
-
-onMounted(() => {
-  updateBoardSize();
-  window.addEventListener('resize', updateBoardSize);
-});
-
-onUnmounted(() => {
-  stopTimer();
-  window.removeEventListener('resize', updateBoardSize);
-});
-
-// --- GAME LOGIC ---
+// --- 1. MEMULAI GAME ---
 const startGame = (size) => {
   gridSize.value = size;
   gameState.value = 'playing';
   moves.value = 0;
   timer.value = 0;
+  selectedPiece.value = null;
   startTimer();
   initPieces();
 };
@@ -53,6 +30,7 @@ const startTimer = () => {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => { timer.value++; }, 1000);
 };
+
 const stopTimer = () => { clearInterval(timerInterval); };
 
 const formattedTime = computed(() => {
@@ -61,25 +39,30 @@ const formattedTime = computed(() => {
   return `${m}:${s}`;
 });
 
+// --- 2. LOGIKA PEMOTONGAN GAMBAR ---
 const initPieces = () => {
   pieces.value = [];
-  const count = gridSize.value * gridSize.value;
-  // Gunakan .value untuk boardSize karena sekarang reactive
-  const pieceSize = boardSize.value / gridSize.value;
+  const total = gridSize.value * gridSize.value;
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < total; i++) {
     const row = Math.floor(i / gridSize.value);
     const col = i % gridSize.value;
+
+    // RUMUS MATEMATIKA PERSENTASE (Agar Responsif di Semua Layar)
+    // Menghitung posisi background dalam persen (%)
+    const bgX = (col / (gridSize.value - 1)) * 100;
+    const bgY = (row / (gridSize.value - 1)) * 100;
+
     pieces.value.push({
-      id: i, currentPos: i,
-      bgX: -col * pieceSize,
-      bgY: -row * pieceSize
+      id: i,           // ID Asli (Posisi Benar)
+      bgPos: `${bgX}% ${bgY}%` // Posisi Gambar
     });
   }
   shufflePieces();
 };
 
 const shufflePieces = () => {
+  // Acak posisi potongan
   let shuffled = [...pieces.value];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -88,54 +71,72 @@ const shufflePieces = () => {
   pieces.value = shuffled;
 };
 
-// --- LOGIKA INTERAKSI (SUPPORT DRAG & TAP) ---
+// --- 3. INTERAKSI (DRAG & TAP) ---
 
-// 1. Swap Helper
+// Fungsi Tukar Posisi (Core Logic)
 const swapPieces = (index1, index2) => {
-  if (index1 === index2) return;
+  // Tukar isi array
   const temp = pieces.value[index1];
   pieces.value[index1] = pieces.value[index2];
   pieces.value[index2] = temp;
+
   moves.value++;
   checkWin();
 };
 
-// 2. Drag (Desktop)
+// A. Fitur Drag & Drop (Untuk Laptop/Mouse)
 const onDragStart = (evt, index) => {
   isDragging.value = index;
   evt.dataTransfer.effectAllowed = 'move';
   evt.dataTransfer.dropEffect = 'move';
-  evt.target.style.opacity = '0.5';
+  evt.target.style.opacity = '0.5'; // Efek transparan saat ditarik
 };
+
 const onDragEnd = (evt) => {
   evt.target.style.opacity = '1';
   isDragging.value = null;
 };
+
 const onDrop = (evt, dropIndex) => {
   const dragIndex = isDragging.value;
-  if (dragIndex !== null) {
+  if (dragIndex !== null && dragIndex !== dropIndex) {
     swapPieces(dragIndex, dropIndex);
   }
 };
 
-// 3. Tap/Klik (Mobile Friendly)
+// B. Fitur Tap/Ketuk (Untuk HP/Touchscreen)
 const onPieceClick = (index) => {
-  // Jika belum ada yang dipilih, pilih kepingan ini
-  if (selectedPieceIndex.value === null) {
-    selectedPieceIndex.value = index;
-  } else {
-    // Jika sudah ada yang dipilih, tukar dengan yang baru diklik
-    swapPieces(selectedPieceIndex.value, index);
-    selectedPieceIndex.value = null; // Reset pilihan
+  // 1. Jika belum ada yang dipilih -> Pilih kotak ini
+  if (selectedPiece.value === null) {
+    selectedPiece.value = index;
+  }
+  // 2. Jika kotak yang sama diklik lagi -> Batalkan pilihan
+  else if (selectedPiece.value === index) {
+    selectedPiece.value = null;
+  }
+  // 3. Jika kotak berbeda diklik -> Tukar!
+  else {
+    swapPieces(selectedPiece.value, index);
+    selectedPiece.value = null; // Reset setelah tukar
   }
 };
 
+// --- 4. CEK MENANG ---
 const checkWin = () => {
+  // Cek apakah semua ID berurutan sesuai indexnya
   const isWin = pieces.value.every((p, index) => p.id === index);
-  if (isWin) { stopTimer(); gameState.value = 'won'; }
+  if (isWin) {
+    stopTimer();
+    gameState.value = 'won';
+  }
 };
 
-const resetGame = () => { gameState.value = 'menu'; stopTimer(); };
+const resetGame = () => {
+  gameState.value = 'menu';
+  stopTimer();
+};
+
+onUnmounted(() => { stopTimer(); });
 </script>
 
 <template>
@@ -143,31 +144,31 @@ const resetGame = () => { gameState.value = 'menu'; stopTimer(); };
 
     <div v-if="gameState === 'menu'" class="menu-screen">
       <h2>Pilih Level</h2>
-      <div class="levels">
-        <button class="lvl" @click="startGame(3)">Mudah (3x3)</button>
-        <button class="lvl" @click="startGame(4)">Sedang (4x4)</button>
-        <button class="lvl" @click="startGame(5)">Sulit (5x5)</button>
+      <p>Pilih tingkat kesulitan untuk memulai.</p>
+      <div class="level-btn-container">
+        <button class="lvl-btn easy" @click="startGame(3)">Mudah (3x3)</button>
+        <button class="lvl-btn medium" @click="startGame(4)">Sedang (4x4)</button>
+        <button class="lvl-btn hard" @click="startGame(5)">Sulit (5x5)</button>
       </div>
     </div>
 
     <div v-else-if="gameState === 'playing'" class="board-wrapper">
-      <div class="stats">
-        <span>⏱️ {{ formattedTime }}</span>
-        <span>👣 {{ moves }}</span>
+
+      <div class="stats-bar">
+        <div class="stat">⏱️ {{ formattedTime }}</div>
+        <div class="stat">👣 {{ moves }} Langkah</div>
         <button @click="resetGame" class="btn-cancel">Batal</button>
       </div>
 
       <div
         class="puzzle-grid"
-        :style="{
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-          width: boardSize + 'px',
-          height: boardSize + 'px'
-        }"
+        :style="{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }"
       >
         <div
-          v-for="(piece, index) in pieces" :key="piece.id"
-          class="piece-box"
+          v-for="(piece, index) in pieces"
+          :key="piece.id"
+          class="puzzle-cell"
+          :class="{ 'is-selected': selectedPiece === index }"
           draggable="true"
           @dragstart="onDragStart($event, index)"
           @dragend="onDragEnd($event)"
@@ -176,87 +177,132 @@ const resetGame = () => { gameState.value = 'menu'; stopTimer(); };
           @click="onPieceClick(index)"
         >
           <div
-            class="piece-content"
-            :class="{
-              'correct': piece.id === index,
-              'selected': selectedPieceIndex === index
-            }"
+            class="image-fragment"
+            :class="{ 'is-correct': piece.id === index }"
             :style="{
               backgroundImage: `url(${imageSrc})`,
-              backgroundPosition: `${piece.bgX}px ${piece.bgY}px`,
-              backgroundSize: `${boardSize}px ${boardSize}px`
+              backgroundPosition: piece.bgPos,
+              backgroundSize: `${gridSize * 100}% ${gridSize * 100}%`
             }"
           >
-            <span class="num">{{ piece.id + 1 }}</span>
+            <span class="hint-number">{{ piece.id + 1 }}</span>
           </div>
         </div>
       </div>
-      <p class="hint-text">Geser atau <b>Ketuk 2 kotak</b> untuk menukar!</p>
+
+      <p class="guide-text">
+        💻 <b>Desktop:</b> Tarik & Lepas kotak.<br>
+        📱 <b>HP:</b> Ketuk kotak A, lalu ketuk kotak B untuk menukar.
+      </p>
     </div>
 
     <div v-else-if="gameState === 'won'" class="win-screen">
-      <h1>🏆 Hore! Menang!</h1>
-      <p>Waktu: {{ formattedTime }}</p>
+      <div class="trophy">🏆</div>
+      <h2>Luar Biasa!</h2>
+      <p>Waktu: <b>{{ formattedTime }}</b> | Langkah: <b>{{ moves }}</b></p>
       <button @click="resetGame" class="btn-replay">Main Lagi</button>
     </div>
+
   </div>
 </template>
 
 <style scoped>
+/* CONTAINER UTAMA (RESPONSIF) */
 .game-container {
-  background: #222; padding: 20px; border-radius: 15px; border: 2px solid #444;
-  color: white; text-align: center; display: inline-block;
+  background: #222;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid #444;
+  color: white;
+  text-align: center;
 
-  /* CSS Responsive untuk Container Utama */
-  max-width: 95vw; /* Maksimal 95% lebar layar HP */
-  box-sizing: border-box;
+  /* Ukuran Responsif: Max 500px di laptop, tapi 95% lebar di HP */
+  width: 95%;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
-.menu-screen h2 { color: #d946ef; margin-bottom: 20px; }
-.levels { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.lvl { padding: 10px 20px; background: #333; color: white; border: 1px solid #555; border-radius: 8px; cursor: pointer; }
-.lvl:hover { background: #00c853; border-color: #00c853; }
+/* MENU SCREEN */
+.menu-screen h2 { color: #d946ef; margin-bottom: 10px; }
+.menu-screen p { color: #aaa; margin-bottom: 20px; font-size: 14px; }
+.level-btn-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.lvl-btn {
+  padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; color: white; transition: transform 0.2s;
+}
+.lvl-btn:hover { transform: translateY(-2px); }
+.easy { background: #00c853; }
+.medium { background: #ffb74d; color: #333; }
+.hard { background: #ff5252; }
 
-.stats { display: flex; justify-content: space-between; margin-bottom: 15px; font-family: monospace; font-size: 14px; }
-.btn-cancel { background: #ff5252; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+/* STATS BAR */
+.stats-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.3); padding: 10px 15px; border-radius: 8px;
+  margin-bottom: 15px; font-family: monospace; font-size: 14px;
+}
+.stat { color: #a5b4fc; font-weight: bold; }
+.btn-cancel { background: #ff5252; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
 
+/* GRID PUZZLE (CORE STYLE) */
 .puzzle-grid {
   display: grid;
-  gap: 2px;
+  gap: 2px; /* Jarak antar kotak */
   background: #111;
   padding: 5px;
-  border-radius: 5px;
-  margin: 0 auto;
+  border-radius: 8px;
 
-  /* Penting: Matikan touch action browser saat main game */
-  touch-action: none;
+  /* Agar selalu KOTAK SEMPURNA (1:1) */
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  /* Optimasi sentuhan HP */
+  touch-action: manipulation;
 }
 
-.piece-box {
-  width: 100%; height: 100%; position: relative; cursor: pointer;
-  overflow: hidden; border-radius: 5px;
+.puzzle-cell {
+  position: relative;
+  width: 100%; height: 100%;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 4px; /* Sudut sedikit tumpul */
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.piece-content {
-  width: 100%; height: 100%; background-repeat: no-repeat; position: relative;
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-  transition: transform 0.2s, border 0.2s;
-}
-
-.piece-content.correct { filter: brightness(1.1); box-shadow: inset 0 0 0 2px #00c853; }
-
-/* Efek visual saat dipilih di HP (Tap to Swap) */
-.piece-content.selected {
-  box-shadow: inset 0 0 0 4px #d946ef; /* Border ungu tebal */
+/* Efek saat dipilih di HP (Border Ungu) */
+.puzzle-cell.is-selected {
+  z-index: 10;
+  box-shadow: 0 0 0 3px #d946ef;
   transform: scale(0.95);
 }
 
-.num {
-  position: absolute; top: 2px; left: 2px; font-size: 10px;
-  color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.5);
-  padding: 1px 4px; border-radius: 4px; pointer-events: none;
+.image-fragment {
+  width: 100%; height: 100%;
+  background-repeat: no-repeat;
+  /* Transisi halus saat pindah */
+  transition: filter 0.3s;
 }
 
-.hint-text { margin-top: 10px; font-size: 12px; color: #888; }
-.btn-replay { background: #00c853; padding: 10px 30px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+/* Efek visual jika posisi benar (sedikit lebih terang) */
+.image-fragment.is-correct {
+  filter: brightness(1.15);
+  box-shadow: inset 0 0 0 1px rgba(0, 200, 83, 0.5);
+}
+
+/* Nomor Bantuan */
+.hint-number {
+  position: absolute; top: 2px; left: 2px;
+  font-size: 10px; font-weight: bold; color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.5); padding: 1px 5px; border-radius: 3px;
+  pointer-events: none;
+}
+
+.guide-text { margin-top: 20px; font-size: 12px; color: #888; line-height: 1.5; }
+
+/* WIN SCREEN */
+.win-screen .trophy { font-size: 50px; margin-bottom: 10px; animation: bounce 2s infinite; }
+.win-screen h2 { color: #00c853; margin-bottom: 10px; }
+.btn-replay { background: linear-gradient(90deg, #00c853, #00e676); border: none; padding: 12px 30px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; }
+
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 </style>
