@@ -5,14 +5,23 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const currentUser = ref('');
 const isMobileMenuOpen = ref(false);
-const isScrolled = ref(false); // Untuk efek navbar saat di-scroll
+const isScrolled = ref(false);
+const isDarkMode = ref(true);
 
 // --- LOGIC ---
 onMounted(() => {
   const savedUser = localStorage.getItem('puzzleUser');
   if (savedUser) currentUser.value = savedUser;
 
-  // Deteksi Scroll untuk efek Navbar Transparan -> Solid
+  const savedTheme = localStorage.getItem('puzzleTheme');
+  if (savedTheme === 'light') {
+    isDarkMode.value = false;
+    document.body.classList.add('light-theme');
+  } else {
+    isDarkMode.value = true;
+    document.body.classList.remove('light-theme');
+  }
+
   window.addEventListener('scroll', handleScroll);
 });
 
@@ -37,6 +46,17 @@ const startGame = () => { router.push('/game'); };
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value;
+  if (isDarkMode.value) {
+    document.body.classList.remove('light-theme');
+    localStorage.setItem('puzzleTheme', 'dark');
+  } else {
+    document.body.classList.add('light-theme');
+    localStorage.setItem('puzzleTheme', 'light');
+  }
+};
 </script>
 
 <template>
@@ -51,21 +71,28 @@ const toggleMobileMenu = () => {
         </div>
 
         <div class="nav-center desktop-only">
-          <a href="#hero" class="nav-item">Beranda</a>
-          <a href="#how-to" class="nav-item">Cara Main</a>
-          <a href="#features" class="nav-item">Fitur</a>
-          <router-link to="/popular" class="nav-item">Populer</router-link>
+          <router-link to="/puzzles" class="nav-item">🧩 Puzzle</router-link>
+          <router-link to="/popular" class="nav-item">🔥 Populer</router-link>
+          <router-link to="/categories" class="nav-item">📂 Kategori</router-link>
         </div>
 
         <div class="nav-right">
+
           <div v-if="!currentUser" class="auth-buttons">
             <button class="btn-login" @click="goToLogin">Masuk</button>
             <button class="btn-register" @click="goToRegister">Daftar</button>
           </div>
+
           <div v-else class="user-profile">
             <span class="welcome-text desktop-only">Hi, <b>{{ currentUser }}</b></span>
             <button class="btn-logout" @click="handleLogout">Keluar</button>
           </div>
+
+          <div class="nav-divider desktop-only"></div>
+
+          <button class="theme-btn desktop-only" @click="toggleTheme" title="Ganti Mode">
+            <span class="theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
+          </button>
 
           <button class="burger-btn mobile-only" @click="toggleMobileMenu">
             <span v-if="!isMobileMenuOpen">☰</span>
@@ -78,10 +105,24 @@ const toggleMobileMenu = () => {
     <transition name="slide-fade">
       <div v-if="isMobileMenuOpen" class="mobile-menu-overlay">
         <div class="mobile-menu-content">
-          <a href="#hero" class="m-link" @click="toggleMobileMenu">🏠 Beranda</a>
-          <a href="#how-to" class="m-link" @click="toggleMobileMenu">🎮 Cara Bermain</a>
-          <a href="#features" class="m-link" @click="toggleMobileMenu">✨ Fitur Unggulan</a>
-          <router-link to="/popular" class="m-link" @click="toggleMobileMenu">🔥 Populer</router-link>
+          <p class="menu-label">Menu Utama</p>
+          <router-link to="/puzzles" class="m-link" @click="toggleMobileMenu">
+            <span>🧩 Puzzle</span> <span>➔</span>
+          </router-link>
+          <router-link to="/popular" class="m-link" @click="toggleMobileMenu">
+            <span>🔥 Populer</span> <span>➔</span>
+          </router-link>
+          <router-link to="/categories" class="m-link" @click="toggleMobileMenu">
+            <span>📂 Kategori</span> <span>➔</span>
+          </router-link>
+
+          <div class="divider"></div>
+
+          <div class="m-link theme-row" @click="toggleTheme">
+            <span>Mode Tampilan</span>
+            <div class="theme-switch">{{ isDarkMode ? '🌙 Gelap' : '☀️ Terang' }}</div>
+          </div>
+
           <div class="divider"></div>
           <p class="m-footer">PuzzleSD © 2025</p>
         </div>
@@ -94,23 +135,18 @@ const toggleMobileMenu = () => {
         <div class="bg-pattern"></div>
 
         <div class="hero-content">
-          <div class="hero-text">
+          <div class="hero-text-left">
             <div class="badge">🚀 Game Edukasi No. #1</div>
             <h1>Main Puzzle <span class="text-gradient">Tanpa Batas</span></h1>
-            <p>Melatih kecerdasan visual, fokus, dan kesabaran dengan cara yang seru. Gratis untuk semua!</p>
+            <p>Melatih kecerdasan visual, fokus, dan kesabaran dengan cara yang seru.<br>Gratis untuk semua siswa SD di Indonesia!</p>
 
-            <div class="hero-btns">
+            <div class="hero-btns-left">
               <button @click="startGame" class="btn-hero-primary">▶ Mulai Sekarang</button>
               <button class="btn-hero-secondary">Lihat Koleksi</button>
             </div>
           </div>
 
-          <div class="hero-visual">
-             <div class="card-3d">
-               <img src="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?w=600&h=400&fit=crop" alt="Game Preview">
-               <div class="floating-badge">🧩 Seru Banget!</div>
-             </div>
-          </div>
+          <div class="hero-empty-space"></div>
         </div>
       </section>
 
@@ -119,7 +155,6 @@ const toggleMobileMenu = () => {
           <h2>Cara Bermain</h2>
           <p>Hanya 4 langkah mudah untuk menjadi juara.</p>
         </div>
-
         <div class="steps-grid">
           <div class="step-card purple-glow">
             <div class="circle-num purple-bg">1</div>
@@ -149,7 +184,6 @@ const toggleMobileMenu = () => {
           <h2>Fitur Unggulan</h2>
           <p>Kenapa harus main di PuzzleSD?</p>
         </div>
-
         <div class="features-wrapper">
           <div class="feature-box">
             <span class="f-emoji">🧠</span>
@@ -174,209 +208,156 @@ const toggleMobileMenu = () => {
 </template>
 
 <style scoped>
-/* --- 1. GLOBAL VARIABLES & RESET --- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
 
+/* --- COLORS & VARS --- */
+:global(body) {
+  --bg-color: #1a0b2e;
+  --text-color: #ffffff;
+  --nav-bg-scrolled: rgba(26, 11, 46, 0.95);
+  --card-bg: #1e1136;
+  --text-sec: #d1d5db;
+  --border-color: rgba(255,255,255,0.1);
+}
+:global(body.light-theme) {
+  --bg-color: #f3f4f6;
+  --text-color: #1f2937;
+  --nav-bg-scrolled: rgba(255, 255, 255, 0.95);
+  --card-bg: #ffffff;
+  --text-sec: #4b5563;
+  --border-color: rgba(0,0,0,0.1);
+}
+
 .home-container {
-  /* Warna Background Ungu Gelap (Sesuai Referensi) */
-  background-color: #1a0b2e;
-  color: #ffffff;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* --- 2. NAVBAR (STICKY) --- */
+/* --- NAVBAR STICKY --- */
 .navbar {
-  position: fixed; /* KUNCI AGAR STICKY */
-  top: 0; left: 0; right: 0;
-  height: 80px;
-  z-index: 1000;
-  transition: all 0.3s ease;
-  background: transparent; /* Awal transparan */
+  position: fixed; top: 0; left: 0; right: 0; height: 90px;
+  z-index: 1000; transition: all 0.3s ease; background: transparent;
 }
-
-/* Saat di-scroll, navbar jadi solid */
 .navbar.scrolled {
-  background: rgba(26, 11, 46, 0.95);
+  background: var(--nav-bg-scrolled);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  height: 70px; /* Sedikit mengecil */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  height: 80px;
 }
-
 .nav-container {
-  max-width: 1200px; margin: 0 auto;
-  height: 100%; padding: 0 20px;
+  max-width: 1280px; margin: 0 auto; height: 100%; padding: 0 30px;
   display: flex; justify-content: space-between; align-items: center;
 }
-
-.nav-left { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 800; }
+.nav-left { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 800; }
+.logo-icon { font-size: 32px; }
 .highlight { color: #d946ef; }
 
+/* MENU DESKTOP (UPDATED) */
 .nav-center { display: flex; gap: 30px; }
-.nav-item { color: #ccc; text-decoration: none; font-weight: 600; transition: color 0.3s; position: relative; }
-.nav-item:hover { color: #fff; }
-.nav-item::after {
-  content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 0;
-  background: #d946ef; transition: width 0.3s;
+.nav-item {
+  color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 1.05rem;
+  transition: color 0.3s; position: relative;
 }
+.nav-item:hover { color: var(--text-color); }
+.nav-item::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 0; background: #d946ef; transition: width 0.3s; }
 .nav-item:hover::after { width: 100%; }
+.router-link-active { color: #d946ef; } /* Warna aktif */
 
-.nav-right { display: flex; align-items: center; gap: 15px; }
+/* --- NAV RIGHT --- */
+.nav-right { display: flex; align-items: center; gap: 30px; }
+.auth-buttons { display: flex; gap: 15px; align-items: center; }
+.user-profile { display: flex; align-items: center; gap: 20px; }
+.welcome-text { font-size: 1rem; color: var(--text-color); }
 
-/* Buttons Navbar */
 .btn-login {
   background: transparent; border: 2px solid #6b21a8; color: #d8b4fe;
-  padding: 8px 24px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s;
+  padding: 10px 28px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 1rem; white-space: nowrap;
 }
+:global(body.light-theme) .btn-login { border-color: #d946ef; color: #d946ef; }
 .btn-login:hover { background: #6b21a8; color: white; }
 
 .btn-register {
   background: #00c853; border: none; color: white;
-  padding: 10px 24px; border-radius: 50px; cursor: pointer; font-weight: 700;
-  box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4); transition: transform 0.2s;
+  padding: 12px 28px; border-radius: 50px; cursor: pointer; font-weight: 700; font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4); transition: transform 0.2s; white-space: nowrap;
 }
 .btn-register:hover { transform: translateY(-2px); background: #00e676; }
 
-.btn-logout { background: #ff5252; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+.btn-logout { background: #ff5252; color: white; border: none; padding: 10px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; transition: transform 0.2s; }
+.btn-logout:hover { transform: translateY(-2px); }
 
-/* --- 3. MOBILE MENU --- */
+.nav-divider { width: 1px; height: 30px; background-color: var(--border-color); }
+
+.theme-btn {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-color);
+  border-radius: 12px; cursor: pointer; transition: 0.3s; width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+}
+:global(body.light-theme) .theme-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+.theme-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.05); }
+.theme-icon { font-size: 20px; }
+
+/* --- MOBILE MENU --- */
 .mobile-only { display: none; }
-.burger-btn { background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; }
-
-.mobile-menu-overlay {
-  position: fixed; top: 70px; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.8); z-index: 999;
-  display: flex; justify-content: flex-end;
-}
-.mobile-menu-content {
-  background: #2d1b4e; width: 100%; height: auto;
-  padding: 20px; border-bottom: 2px solid #d946ef;
-  display: flex; flex-direction: column; gap: 15px;
-  animation: slideDown 0.3s ease;
-}
-.m-link { color: white; text-decoration: none; font-size: 18px; font-weight: 600; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.m-footer { text-align: center; color: #888; font-size: 12px; margin-top: 20px; }
-
+.burger-btn { background: transparent; border: none; color: var(--text-color); font-size: 32px; cursor: pointer; padding: 5px; }
+.mobile-menu-overlay { position: fixed; top: 70px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999; display: flex; justify-content: flex-end; }
+.mobile-menu-content { background: var(--bg-color); width: 100%; height: auto; padding: 20px; border-bottom: 2px solid #d946ef; display: flex; flex-direction: column; gap: 10px; animation: slideDown 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.menu-label { font-size: 12px; text-transform: uppercase; color: var(--text-sec); margin-bottom: 5px; font-weight: bold; }
+.m-link { color: var(--text-color); text-decoration: none; font-size: 18px; font-weight: 600; padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+.m-footer { text-align: center; color: var(--text-sec); font-size: 12px; margin-top: 20px; }
+.theme-row { cursor: pointer; }
+.theme-switch { background: rgba(128,128,128,0.2); padding: 5px 12px; border-radius: 15px; font-size: 14px; }
 @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* --- 4. HERO SECTION --- */
+/* --- HERO SECTION --- */
 .hero-section {
-  position: relative;
-  padding-top: 120px; /* Memberi ruang untuk navbar sticky */
-  padding-bottom: 80px;
+  position: relative; padding-top: 180px; padding-bottom: 120px;
   padding-left: 5%; padding-right: 5%;
-  display: flex; align-items: center; justify-content: space-between;
-  min-height: 85vh;
+  display: flex; align-items: center; justify-content: flex-start;
+  min-height: 80vh;
 }
+.bg-pattern { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(var(--text-sec) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.1; pointer-events: none; }
 
-/* Background Pattern (Ala Puzzle) */
-.bg-pattern {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background-image: radial-gradient(#ffffff 1px, transparent 1px);
-  background-size: 40px 40px; opacity: 0.05; pointer-events: none;
-}
-
-.hero-text { max-width: 50%; z-index: 2; }
-.badge {
-  background: linear-gradient(90deg, #7c3aed, #db2777);
-  padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;
-  display: inline-block; margin-bottom: 20px; letter-spacing: 1px;
-}
-h1 { font-size: 3.8rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; }
-.text-gradient {
-  background: linear-gradient(to right, #d946ef, #fbbf24);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.hero-text p { font-size: 1.2rem; color: #d1d5db; margin-bottom: 30px; line-height: 1.6; }
-
-.hero-btns { display: flex; gap: 15px; }
-.btn-hero-primary {
-  background: linear-gradient(90deg, #d946ef, #9333ea);
-  color: white; border: none; padding: 15px 40px; border-radius: 12px;
-  font-size: 18px; font-weight: bold; cursor: pointer;
-  box-shadow: 0 10px 30px rgba(217, 70, 239, 0.4); transition: transform 0.3s;
-}
+.hero-text-left { max-width: 800px; z-index: 2; text-align: left; }
+.badge { background: linear-gradient(90deg, #7c3aed, #db2777); padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; margin-bottom: 25px; color: white; }
+h1 { font-size: 4.5rem; line-height: 1.1; font-weight: 800; margin-bottom: 25px; }
+.text-gradient { background: linear-gradient(to right, #d946ef, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-text-left p { font-size: 1.4rem; color: var(--text-sec); margin-bottom: 40px; line-height: 1.6; }
+.hero-btns-left { display: flex; gap: 20px; justify-content: flex-start; }
+.btn-hero-primary { background: linear-gradient(90deg, #d946ef, #9333ea); color: white; border: none; padding: 18px 50px; border-radius: 14px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.4); transition: transform 0.3s; }
 .btn-hero-primary:hover { transform: translateY(-5px); }
+.btn-hero-secondary { background: transparent; border: 2px solid var(--text-sec); color: var(--text-color); padding: 18px 50px; border-radius: 14px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.btn-hero-secondary:hover { border-color: var(--text-color); background: rgba(255,255,255,0.1); }
 
-.btn-hero-secondary {
-  background: transparent; border: 2px solid #4b5563; color: white;
-  padding: 15px 40px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer;
-  transition: 0.3s;
-}
-.btn-hero-secondary:hover { border-color: white; background: rgba(255,255,255,0.1); }
-
-.hero-visual { position: relative; z-index: 2; }
-.card-3d img {
-  width: 450px; border-radius: 20px;
-  box-shadow: 20px 20px 0px rgba(107, 33, 168, 0.5); /* Efek bayangan solid */
-  transform: rotate(-3deg); transition: transform 0.5s;
-}
-.card-3d:hover img { transform: rotate(0deg) scale(1.02); }
-.floating-badge {
-  position: absolute; bottom: -20px; right: -20px;
-  background: #fbbf24; color: #000; padding: 10px 20px;
-  border-radius: 10px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  animation: float 3s infinite ease-in-out;
-}
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-/* --- 5. STEPS SECTION --- */
-.steps-section { padding: 80px 5%; background: #130823; text-align: center; }
-.section-header h2 { font-size: 2.5rem; margin-bottom: 10px; }
-.section-header p { color: #a5b4fc; margin-bottom: 50px; }
-
-.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; }
-.step-card {
-  background: #1e1136; padding: 30px; border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s;
-}
+/* --- STEPS & FEATURES --- */
+.steps-section, .features-section { padding: 100px 5%; text-align: center; }
+.steps-section { background: rgba(0,0,0,0.2); }
+.section-header h2 { font-size: 3rem; margin-bottom: 15px; }
+.section-header p { color: var(--text-sec); margin-bottom: 60px; font-size: 1.2rem; }
+.steps-grid, .features-wrapper { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; }
+.step-card, .feature-box { background: var(--card-bg); padding: 40px 30px; border-radius: 24px; border: 1px solid var(--border-color); width: 280px; transition: transform 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .step-card:hover { transform: translateY(-10px); }
-
-.circle-num {
-  width: 60px; height: 60px; margin: 0 auto 20px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; font-weight: bold; border-radius: 50%;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-.purple-bg { background: #8b5cf6; box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
-.orange-bg { background: #f97316; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
-.teal-bg { background: #14b8a6; box-shadow: 0 0 20px rgba(20, 184, 166, 0.4); }
-.pink-bg { background: #ec4899; box-shadow: 0 0 20px rgba(236, 72, 153, 0.4); }
-
-.step-card h3 { margin-bottom: 10px; font-size: 1.2rem; }
-.step-card p { font-size: 0.9rem; color: #ccc; }
-
-/* --- 6. FEATURES SECTION --- */
-.features-section { padding: 80px 5%; background: #1a0b2e; text-align: center; }
-.features-wrapper { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; }
-.feature-box {
-  background: linear-gradient(145deg, #251640, #1e1136);
-  padding: 30px; border-radius: 16px; width: 300px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-.f-emoji { font-size: 40px; display: block; margin-bottom: 15px; }
+.circle-num { width: 60px; height: 60px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5); color: white; }
+.purple-bg { background: #8b5cf6; } .orange-bg { background: #f97316; } .teal-bg { background: #14b8a6; } .pink-bg { background: #ec4899; }
+.step-card h3, .feature-box h3 { margin-bottom: 10px; font-size: 1.3rem; } .step-card p, .feature-box p { font-size: 1rem; color: var(--text-sec); }
+.f-emoji { font-size: 45px; display: block; margin-bottom: 15px; }
 
 /* --- RESPONSIVE MOBILE --- */
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
   .mobile-only { display: block; }
-
-  .navbar { height: 70px; }
-  .navbar.scrolled { height: 60px; }
-
-  .hero-section {
-    flex-direction: column-reverse;
-    text-align: center;
-    padding-top: 100px;
-    gap: 40px;
-  }
-  .hero-text { max-width: 100%; }
-  h1 { font-size: 2.5rem; }
-  .card-3d img { width: 100%; max-width: 350px; }
-
-  .hero-btns { justify-content: center; flex-direction: column; }
-
-  .auth-buttons .btn-register { padding: 8px 16px; font-size: 12px; }
+  .navbar { height: 75px; } .navbar.scrolled { height: 65px; } .nav-container { padding: 0 15px; }
+  .nav-right { gap: 10px; display: flex; align-items: center; }
+  .auth-buttons { gap: 8px; }
+  .btn-login, .btn-register { font-size: 13px; padding: 8px 16px; height: auto; display: flex; align-items: center; justify-content: center; }
+  .hero-section { padding-top: 130px; text-align: center; justify-content: center; }
+  .hero-text-left { width: 100%; text-align: center; }
+  h1 { font-size: 2.8rem; }
+  .hero-btns-left { flex-direction: column; width: 100%; gap: 15px; }
+  .btn-hero-primary, .btn-hero-secondary { width: 100%; padding: 15px; font-size: 1rem; }
 }
 </style>
