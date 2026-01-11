@@ -1,130 +1,230 @@
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+// Import Icons
+import {
+  PhArrowLeft, PhMagnifyingGlass, PhCaretRight,
+  PhPawPrint, PhTree, PhCar, PhPlanet, PhPaintBrush,
+  PhBuildings, PhSoccerBall, PhMusicNotes
+} from '@phosphor-icons/vue';
 
 const router = useRouter();
+const searchQuery = ref('');
 
-// Data Dummy Kategori
-const categories = [
-  { id: 1, name: "Hewan & Peliharaan", count: "120 Puzzles", img: "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&auto=format&fit=crop" },
-  { id: 2, name: "Alam & Pemandangan", count: "85 Puzzles", img: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=500&auto=format&fit=crop" },
-  { id: 3, name: "Seni & Lukisan", count: "45 Puzzles", img: "https://images.unsplash.com/photo-1579783902614-a3fb39279c42?w=500&auto=format&fit=crop" },
-  { id: 4, name: "Makanan & Minuman", count: "60 Puzzles", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&auto=format&fit=crop" },
-  { id: 5, name: "Arsitektur & Kota", count: "90 Puzzles", img: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=500&auto=format&fit=crop" },
-  { id: 6, name: "Otomotif", count: "30 Puzzles", img: "https://images.unsplash.com/photo-1503376763036-066120622c74?w=500&auto=format&fit=crop" },
-  { id: 7, name: "Bunga & Taman", count: "55 Puzzles", img: "https://images.unsplash.com/photo-1490750967868-58cb75069ed6?w=500&auto=format&fit=crop" },
-  { id: 8, name: "Fantasi & Sci-Fi", count: "40 Puzzles", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop" },
-];
+// Data Kategori (Bisa diganti dengan gambar dari src/assets jika ada)
+const categories = ref([
+  { id: 1, name: 'Hewan', count: 120, icon: PhPawPrint, color: 'orange' },
+  { id: 2, name: 'Alam', count: 85, icon: PhTree, color: 'green' },
+  { id: 3, name: 'Kendaraan', count: 94, icon: PhCar, color: 'blue' },
+  { id: 4, name: 'Antariksa', count: 42, icon: PhPlanet, color: 'purple' },
+  { id: 5, name: 'Seni', count: 67, icon: PhPaintBrush, color: 'pink' },
+  { id: 6, name: 'Kota', count: 55, icon: PhBuildings, color: 'cyan' },
+  { id: 7, name: 'Olahraga', count: 30, icon: PhSoccerBall, color: 'red' },
+  { id: 8, name: 'Musik', count: 48, icon: PhMusicNotes, color: 'yellow' },
+]);
 
-const goHome = () => router.push('/');
+// Fitur Pencarian Sederhana
+const filteredCategories = () => {
+  return categories.value.filter(cat =>
+    cat.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+};
+
+const goBack = () => router.push('/');
 </script>
 
 <template>
-  <div class="categories-page">
+  <div class="page-container">
 
-    <div class="header-section">
-      <button @click="goHome" class="back-link">← Kembali ke Beranda</button>
-      <h1>📂 Jelajahi Kategori</h1>
-      <p>Pilih topik favoritmu dan mulai menyusun kepingan cerita.</p>
+    <div class="blobs-container">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
     </div>
 
-    <div class="categories-grid">
-      <div v-for="cat in categories" :key="cat.id" class="category-card">
+    <div class="header-section">
+      <button @click="goBack" class="btn-back">
+        <PhArrowLeft weight="bold" /> Kembali
+      </button>
 
-        <div class="card-bg" :style="{ backgroundImage: `url(${cat.img})` }">
-          <div class="overlay"></div>
-        </div>
-
-        <div class="card-content">
-          <h3>{{ cat.name }}</h3>
-          <span class="puzzle-count">{{ cat.count }}</span>
-          <button class="btn-browse">Lihat Semua ➝</button>
-        </div>
-
+      <div class="header-content">
+        <h1>Kategori Puzzle</h1>
+        <p>Pilih tema favoritmu dan mulai bermain!</p>
       </div>
+
+      <div class="search-bar">
+        <PhMagnifyingGlass size="20" class="search-icon"/>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Cari kategori..."
+        />
+      </div>
+    </div>
+
+    <div class="grid-container">
+      <div
+        v-for="cat in filteredCategories()"
+        :key="cat.id"
+        class="category-card"
+        @click="router.push('/puzzles')"
+      >
+        <div class="card-icon" :class="cat.color">
+          <component :is="cat.icon" size="32" weight="duotone" />
+        </div>
+
+        <div class="card-info">
+          <h3>{{ cat.name }}</h3>
+          <span>{{ cat.count }} Puzzle</span>
+        </div>
+
+        <button class="btn-arrow">
+          <PhCaretRight size="20" weight="bold" />
+        </button>
+      </div>
+    </div>
+
+    <div v-if="filteredCategories().length === 0" class="empty-state">
+      <p>Kategori tidak ditemukan 😔</p>
     </div>
 
   </div>
 </template>
 
 <style scoped>
-.categories-page {
+/* ========================
+   LAYOUT & BACKGROUND
+   ======================== */
+.page-container {
   min-height: 100vh;
-  background-color: #0f0c16;
-  color: white;
-  padding: 40px 80px;
-  font-family: 'Poppins', sans-serif;
-  background-image: radial-gradient(circle at top right, #2d1b4e 0%, #0f0c16 60%);
+  padding: 30px 20px;
+  position: relative;
+  overflow-x: hidden;
+  max-width: 1200px;
+  margin: 0 auto;
+  /* Background otomatis dari App.vue */
 }
 
-.back-link {
-  background: none; border: none; color: #888; cursor: pointer; font-size: 14px; margin-bottom: 20px;
+/* Blobs Background */
+.blobs-container { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: var(--blob-opacity); }
+.b1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--accent); opacity: 0.2; }
+.b2 { top: 20%; right: -20%; width: 40vw; height: 40vw; background: #3b82f6; opacity: 0.2; }
+
+/* ========================
+   HEADER
+   ======================== */
+.header-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
 }
-.back-link:hover { color: white; }
 
-.header-section { margin-bottom: 50px; }
-h1 { font-size: 2.5rem; margin: 0 0 10px 0; font-weight: 800; }
-p { color: #a0a0b0; }
+.btn-back {
+  position: absolute; left: 0; top: 0;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  color: var(--text-muted); padding: 8px 16px; border-radius: 30px;
+  font-weight: 600; cursor: pointer; transition: 0.2s;
+  backdrop-filter: blur(10px);
+}
+.btn-back:hover { color: var(--text-main); border-color: var(--accent); }
 
-/* Grid Layout */
-.categories-grid {
+.header-content h1 { font-size: 2.5rem; margin-bottom: 10px; margin-top: 40px; }
+.header-content p { font-size: 1.1rem; color: var(--text-muted); }
+
+/* Search Bar */
+.search-bar {
+  margin-top: 30px; width: 100%; max-width: 500px;
+  display: flex; align-items: center;
+  background: var(--input-bg); border: 1px solid var(--card-border);
+  padding: 12px 20px; border-radius: 16px; transition: 0.3s;
+}
+.search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15); }
+.search-icon { color: var(--text-muted); margin-right: 10px; }
+.search-bar input {
+  width: 100%; background: transparent; border: none; outline: none;
+  font-size: 1rem; color: var(--text-main);
+}
+.search-bar input::placeholder { color: var(--text-muted); opacity: 0.7; }
+
+/* ========================
+   GRID KATEGORI
+   ======================== */
+.grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 25px;
 }
 
-/* Card Style */
 .category-card {
-  position: relative;
-  height: 220px;
-  border-radius: 16px;
-  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: 1px solid #333;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
 }
 
 .category-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); /* Glow Ungu */
-  border-color: #8b5cf6;
+  border-color: var(--accent);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-/* Background Image dengan Overlay Gelap */
-.card-bg {
-  width: 100%; height: 100%;
-  background-size: cover; background-position: center;
-  transition: transform 0.5s;
-}
-.category-card:hover .card-bg { transform: scale(1.1); }
-
-.overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.2));
+/* Icon Box */
+.card-icon {
+  width: 60px; height: 60px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; flex-shrink: 0;
 }
 
-/* Teks di dalam Card */
-.card-content {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 20px;
-  display: flex; flex-direction: column;
+/* Warna Ikon Dinamis */
+.orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+.green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.pink { background: rgba(236, 72, 153, 0.1); color: #ec4899; }
+.cyan { background: rgba(6, 182, 212, 0.1); color: #06b6d4; }
+.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.yellow { background: rgba(234, 179, 8, 0.1); color: #eab308; }
+
+/* Text Info */
+.card-info { flex: 1; }
+.card-info h3 { font-size: 1.1rem; margin-bottom: 4px; color: var(--text-main); }
+.card-info span { font-size: 0.85rem; color: var(--text-muted); }
+
+/* Arrow Button */
+.btn-arrow {
+  width: 36px; height: 36px;
+  border-radius: 50%; border: none;
+  background: var(--input-bg); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.2s;
+}
+.category-card:hover .btn-arrow {
+  background: var(--accent); color: white;
 }
 
-h3 { margin: 0; font-size: 18px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.puzzle-count { font-size: 12px; color: #ccc; margin-top: 4px; }
+/* Empty State */
+.empty-state { text-align: center; margin-top: 50px; color: var(--text-muted); font-size: 1.2rem; }
 
-.btn-browse {
-  margin-top: 15px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255,255,255,0.4);
-  color: white; padding: 8px 12px; border-radius: 8px;
-  font-size: 12px; cursor: pointer; backdrop-filter: blur(5px);
-  width: fit-content; opacity: 0; transform: translateY(10px);
-  transition: all 0.3s;
+/* ========================
+   RESPONSIVE
+   ======================== */
+@media (max-width: 600px) {
+  .header-section { align-items: flex-start; text-align: left; }
+  .btn-back { position: relative; margin-bottom: 20px; }
+  .header-content h1 { margin-top: 0; font-size: 2rem; }
+  .grid-container { grid-template-columns: 1fr; } /* 1 Kolom di HP */
 }
-
-/* Efek Hover Tombol Muncul */
-.category-card:hover .btn-browse {
-  opacity: 1; transform: translateY(0);
-}
-.btn-browse:hover { background: #8b5cf6; border-color: #8b5cf6; }
 </style>
