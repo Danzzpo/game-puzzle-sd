@@ -13,7 +13,7 @@ const router = useRouter();
 const currentUser = ref('');
 const isMobileMenuOpen = ref(false);
 const isScrolled = ref(false);
-const isDarkMode = ref(true);
+const isDarkMode = ref(true); // Default Dark
 
 // --- LOGIC ---
 onMounted(() => {
@@ -21,11 +21,11 @@ onMounted(() => {
   if (savedUser) currentUser.value = savedUser;
 
   const savedTheme = localStorage.getItem('puzzleTheme');
-  // Check saved theme
+  // Set initial state based on storage
   if (savedTheme === 'light') {
-    enableLightMode();
+    isDarkMode.value = false;
   } else {
-    enableDarkMode();
+    isDarkMode.value = true;
   }
 
   window.addEventListener('scroll', handleScroll);
@@ -53,30 +53,16 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
-// --- THEME SWITCHING LOGIC ---
-const enableLightMode = () => {
-  isDarkMode.value = false;
-  document.body.classList.add('light-theme'); // Add class to BODY
-  localStorage.setItem('puzzleTheme', 'light');
-};
-
-const enableDarkMode = () => {
-  isDarkMode.value = true;
-  document.body.classList.remove('light-theme'); // Remove class from BODY
-  localStorage.setItem('puzzleTheme', 'dark');
-};
-
+// --- THEME SWITCHING (LOCAL CONTROL) ---
+// Kita mengubah state isDarkMode yang langsung mengontrol class CSS di template
 const toggleTheme = () => {
-  if (isDarkMode.value) {
-    enableLightMode();
-  } else {
-    enableDarkMode();
-  }
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('puzzleTheme', isDarkMode.value ? 'dark' : 'light');
 };
 </script>
 
 <template>
-  <div class="home-container">
+  <div class="home-container" :class="{ 'light-mode': !isDarkMode }">
 
     <div class="blobs-container">
       <div class="blob blob-1"></div>
@@ -121,7 +107,7 @@ const toggleTheme = () => {
 
           <div class="nav-divider desktop-only"></div>
 
-          <button class="theme-btn desktop-only" @click="toggleTheme" :title="isDarkMode ? 'Switch to Light' : 'Switch to Dark'">
+          <button class="theme-btn desktop-only" @click="toggleTheme" :title="isDarkMode ? 'Ganti ke Terang' : 'Ganti ke Gelap'">
             <PhSun v-if="!isDarkMode" :size="22" weight="fill" />
             <PhMoon v-else :size="22" weight="fill" />
           </button>
@@ -250,18 +236,17 @@ const toggleTheme = () => {
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
 
 /* =========================================
-   1. COLOR CONFIGURATION (FIXED)
+   1. COLOR DEFINITION (LOCAL SCOPE)
    ========================================= */
 
 /* A. DEFAULT (DARK MODE) */
-:global(:root) {
+.home-container {
+  /* Variabel didefinisikan DI SINI, bukan di :root global */
   --bg-color: #0f0518;
   --text-main: #ffffff;
   --text-muted: #d1d5db;
 
   --nav-bg: rgba(15, 5, 24, 0.9);
-  --nav-blur: 15px;
-
   --card-bg: rgba(255, 255, 255, 0.05);
   --card-border: rgba(255, 255, 255, 0.1);
   --card-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -273,52 +258,63 @@ const toggleTheme = () => {
 
   --section-gradient: linear-gradient(180deg, rgba(36, 11, 54, 0.95) 0%, rgba(74, 20, 140, 0.95) 100%);
   --mobile-bg: #1a0b2e;
-
   --blob-opacity: 0.4;
-}
 
-/* B. LIGHT MODE (IMPORTANT OVERRIDES) */
-:global(body.light-theme) {
-  --bg-color: #ffffff !important; /* Force pure white background */
-  --text-main: #1f2937 !important; /* Force DARK text */
-  --text-muted: #475569 !important; /* Force GREY text */
+  /* Gradient Teks Default (Kuning/Ungu) */
+  --grad-start: #d946ef;
+  --grad-end: #fbbf24;
 
-  --nav-bg: rgba(255, 255, 255, 0.95) !important;
-  --nav-blur: 20px;
-
-  --card-bg: #f8fafc !important;
-  --card-border: #e2e8f0 !important;
-  --card-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
-
-  --accent: #7c3aed !important;
-  --btn-bg: #f1f5f9 !important;
-  --btn-border: #cbd5e1 !important;
-  --btn-text: #333 !important;
-
-  --section-gradient: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-  --mobile-bg: #ffffff !important;
-
-  --blob-opacity: 0.2 !important;
-}
-
-/* =========================================
-   2. GLOBAL LAYOUT
-   ========================================= */
-
-.home-container {
+  /* Terapkan langsung ke container */
   background-color: var(--bg-color);
   color: var(--text-main);
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
   overflow-x: hidden;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   position: relative;
 }
 
-/* Ensure ALL text elements inherit the correct color variable */
-h1, h2, h3, h4, p, span, a, div, button, li {
-  color: inherit;
+/* B. LIGHT MODE (AKTIF JIKA ADA CLASS .light-mode) */
+.home-container.light-mode {
+  --bg-color: #ffffff !important;
+  --text-main: #111827 !important; /* Hitam Pekat - PASTI GELAP */
+  --text-muted: #4b5563 !important; /* Abu Gelap */
+
+  --nav-bg: rgba(255, 255, 255, 0.95) !important;
+
+  --card-bg: #f8fafc !important;
+  --card-border: #cbd5e1 !important; /* Border Abu Jelas */
+  --card-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+
+  --accent: #7c3aed !important;
+  --btn-bg: #f1f5f9 !important;
+  --btn-border: #cbd5e1 !important;
+  --btn-text: #1f293b !important;
+
+  --section-gradient: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  --mobile-bg: #ffffff !important;
+  --blob-opacity: 0.15 !important;
+
+  /* Gradient Teks Light Mode (Ungu ke Oranye Tua - Agar terlihat di putih) */
+  --grad-start: #7c3aed;
+  --grad-end: #ea580c;
 }
+
+/* Memaksa elemen teks menggunakan variabel */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main) !important;
+  transition: color 0.3s ease;
+}
+p, span, div {
+  color: var(--text-main); /* Default fallback */
+}
+p {
+  color: var(--text-muted) !important;
+}
+
+/* =========================================
+   2. STYLES
+   ========================================= */
 
 /* BLOBS */
 .blobs-container {
@@ -340,7 +336,7 @@ h1, h2, h3, h4, p, span, a, div, button, li {
 }
 
 /* NAVBAR */
-.navbar { position: fixed; top: 0; left: 0; right: 0; height: 80px; z-index: 1000; transition: 0.3s; }
+.navbar { position: fixed; top: 0; left: 0; right: 0; height: 80px; z-index: 1000; transition: background-color 0.3s; }
 .navbar.scrolled {
   background: var(--nav-bg);
   backdrop-filter: blur(10px);
@@ -355,10 +351,12 @@ h1, h2, h3, h4, p, span, a, div, button, li {
 
 .nav-center { display: flex; gap: 35px; }
 .nav-item {
-  color: var(--text-muted); text-decoration: none; font-weight: 600;
+  color: var(--text-muted) !important; /* Paksa pakai muted */
+  text-decoration: none; font-weight: 600;
   display: flex; align-items: center; gap: 8px; transition: 0.3s;
 }
-.nav-item:hover { color: var(--text-main); transform: translateY(-2px); }
+.nav-item:hover { color: var(--text-main) !important; transform: translateY(-2px); }
+.nav-item.router-link-active { color: var(--accent) !important; }
 
 .nav-right { display: flex; align-items: center; gap: 20px; }
 .auth-buttons { display: flex; gap: 10px; }
@@ -397,10 +395,13 @@ h1, h2, h3, h4, p, span, a, div, button, li {
   font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;
 }
 h1 { font-size: 4rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; color: var(--text-main); }
+
+/* GRADIENT TEXT FIX */
 .text-gradient {
-  background: linear-gradient(120deg, var(--accent), #fbbf24);
+  background: linear-gradient(120deg, var(--grad-start), var(--grad-end));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
+
 .hero-text-left p { font-size: 1.3rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; }
 
 .hero-btns-left { display: flex; gap: 15px; }
@@ -410,7 +411,9 @@ h1 { font-size: 4rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; c
   display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 .btn-hero-secondary {
-  background: transparent; border: 2px solid var(--text-muted); color: var(--text-main);
+  background: transparent;
+  border: 2px solid var(--text-muted);
+  color: var(--text-main) !important; /* Paksa warna text main */
   padding: 14px 30px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer;
 }
 
@@ -424,10 +427,6 @@ h1 { font-size: 4rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; c
 .section-header h2 { font-size: 2.5rem; margin-bottom: 10px; color: var(--text-main); }
 .section-header p { color: var(--text-muted); font-size: 1.1rem; }
 
-/* FIX: Section headers always readable */
-:global(body:not(.light-theme)) .section-header h2 { color: white; }
-:global(body.light-theme) .section-header h2 { color: #1e293b; }
-
 .steps-grid, .features-wrapper { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; }
 
 .step-card, .feature-box {
@@ -435,7 +434,7 @@ h1 { font-size: 4rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; c
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
   padding: 30px; border-radius: 20px; width: 280px; text-align: center;
-  transition: 0.3s;
+  transition: transform 0.3s, border-color 0.3s;
 }
 .step-card:hover, .feature-box:hover { transform: translateY(-10px); border-color: var(--accent); }
 
@@ -450,7 +449,7 @@ h1 { font-size: 4rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; c
 .pink-bg { background: #ec4899; color: white; }
 
 .step-card h3, .feature-box h3 { font-size: 1.3rem; margin-bottom: 10px; color: var(--text-main); }
-.step-card p, .feature-box p { font-size: 0.95rem; color: var(--text-muted); }
+.step-card p, .feature-box p { font-size: 0.95rem; color: var(--text-muted) !important; }
 
 .features-section { padding: 80px 5%; }
 .feature-box .feat-icon { color: var(--accent); }
@@ -485,6 +484,7 @@ h1 { font-size: 4rem; line-height: 1.1; font-weight: 800; margin-bottom: 20px; c
   .m-link {
     color: var(--text-main); text-decoration: none;
     padding: 15px; border-radius: 10px; background: var(--card-bg);
+    border: 1px solid var(--card-border);
     display: flex; justify-content: space-between; font-weight: 600;
   }
   .theme-switch { font-size: 14px; color: var(--text-muted); }
