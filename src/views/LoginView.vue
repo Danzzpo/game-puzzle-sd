@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-// Import Ikon Phosphor (PhGoogleLogo dihapus karena pakai gambar asli)
+// Import Ikon Phosphor
 import {
   PhEnvelope, PhLockKey, PhArrowLeft,
   PhStar, PhPlanet
@@ -36,7 +36,9 @@ const handleLogin = () => {
       const cleanName = name.charAt(0).toUpperCase() + name.slice(1);
 
       localStorage.setItem('puzzleUser', cleanName);
-      localStorage.setItem('puzzleTheme', 'dark');
+
+      // PENTING: Jangan reset tema ke 'dark' di sini! Biarkan mengikuti pilihan user.
+      // localStorage.setItem('puzzleTheme', 'dark'); <--- HAPUS BARIS INI
 
       router.push('/');
     } else {
@@ -143,9 +145,14 @@ const handleLogin = () => {
 .auth-page {
   height: 100vh; width: 100vw;
   display: flex; align-items: center; justify-content: center;
-  background-color: #0f0518;
-  font-family: 'Poppins', sans-serif; color: white;
+
+  /* PERUBAHAN UTAMA DI SINI */
+  background-color: var(--bg-color); /* Menggunakan variabel dari App.vue */
+  color: var(--text-main);           /* Menggunakan variabel dari App.vue */
+
+  font-family: 'Poppins', sans-serif;
   position: relative; overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* --- BACKGROUND BLOBS --- */
@@ -155,7 +162,11 @@ const handleLogin = () => {
 }
 .blob {
   position: absolute; border-radius: 50%;
-  filter: blur(80px); opacity: 0.4;
+  filter: blur(80px);
+
+  /* Gunakan Opacity Variabel agar tidak terlalu terang di Light Mode */
+  opacity: var(--blob-opacity);
+
   animation: floatBlob 15s infinite alternate ease-in-out;
 }
 .blob-1 { top: -20%; left: -10%; width: 600px; height: 600px; background: #7c3aed; }
@@ -175,7 +186,7 @@ const handleLogin = () => {
 .d1 { top: 15%; right: 20%; font-size: 3rem; color: #fbbf24; animation-duration: 6s; }
 .d2 { bottom: 15%; left: 10%; font-size: 4rem; color: #a855f7; animation-duration: 9s; }
 
-.circle { position: absolute; border-radius: 50%; background: white; opacity: 0.05; }
+.circle { position: absolute; border-radius: 50%; background: var(--text-main); opacity: 0.05; }
 .c1 { width: 100px; height: 100px; top: 10%; left: 30%; }
 .c2 { width: 50px; height: 50px; bottom: 30%; right: 10%; }
 
@@ -190,117 +201,158 @@ const handleLogin = () => {
 }
 .btn-back-pill {
   display: flex; align-items: center; gap: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  /* Gunakan Variabel Tombol */
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--text-main);
+
   padding: 10px 20px; border-radius: 50px;
-  color: white; text-decoration: none; font-weight: 600;
+  text-decoration: none; font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 .btn-back-pill:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--card-bg);
+  border-color: var(--accent);
+  color: var(--accent);
   transform: translateX(5px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 /* --- CARD LOGIN --- */
 .auth-card {
   width: 100%; max-width: 400px;
-  background: rgba(255, 255, 255, 0.03);
+
+  /* Gunakan Variabel Kartu */
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+
   backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 30px;
   padding: 40px;
   text-align: center;
-  box-shadow: 0 25px 50px rgba(0,0,0,0.3);
   z-index: 5;
   position: relative;
-  /* Animasi float dihapus, ganti dengan entrance saja */
 }
 .animate-enter { animation: fadeInUp 0.8s ease-out; }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 
 /* HEADER CARD */
 .card-header { margin-bottom: 30px; }
-.icon-glow {
-  width: 70px; height: 70px;
-  background: linear-gradient(135deg, #d946ef, #a855f7);
-  border-radius: 20px; display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 20px;
-  box-shadow: 0 10px 30px rgba(217, 70, 239, 0.4);
-  transform: rotate(-10deg);
+
+h2 {
+  font-size: 26px; font-weight: 800; margin: 0;
+  color: var(--text-main); /* Variabel */
+  letter-spacing: 0.5px;
 }
-h2 { font-size: 26px; font-weight: 800; margin: 0; color: white; letter-spacing: 0.5px; }
-.subtitle { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+.subtitle {
+  font-size: 14px;
+  color: var(--text-muted); /* Variabel */
+  margin-top: 8px;
+}
 
 /* --- INPUT FIELDS --- */
 .auth-form { display: flex; flex-direction: column; gap: 20px; }
 
 .input-group {
   position: relative;
-  background: rgba(0,0,0,0.2); border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.1);
+
+  /* Gunakan Variabel Input */
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+
+  border-radius: 16px;
   display: flex; align-items: center; padding: 0 18px;
   transition: 0.3s;
 }
 .input-group:focus-within {
-  border-color: #d946ef; box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.15);
-  background: rgba(0,0,0,0.3); transform: scale(1.02);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.15);
+  transform: scale(1.02);
 }
-.input-icon { color: rgba(255,255,255,0.5); }
+.input-icon { color: var(--text-muted); }
+
 .input-group input {
   width: 100%; padding: 16px 12px;
   background: transparent; border: none; outline: none;
-  color: white; font-size: 15px; font-weight: 500;
+
+  /* Variabel Text Input */
+  color: var(--text-main);
+
+  font-size: 15px; font-weight: 500;
 }
-.input-group input::placeholder { color: rgba(255,255,255,0.3); }
+.input-group input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
 
 /* EXTRA OPTIONS */
 .extra-options {
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 5px;
+  font-size: 13px;
+  color: var(--text-muted); /* Variabel */
+  margin-bottom: 5px;
 }
 .remember-me { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.forgot-link { color: #d946ef; text-decoration: none; font-weight: 600; transition: 0.3s; }
-.forgot-link:hover { color: #f0abfc; text-decoration: underline; }
+.forgot-link {
+  color: var(--accent); /* Variabel */
+  text-decoration: none; font-weight: 600; transition: 0.3s;
+}
+.forgot-link:hover { opacity: 0.8; text-decoration: underline; }
 
 /* BUTTONS */
 .btn-primary-auth {
-  background: linear-gradient(135deg, #d946ef, #a855f7);
+  /* Gunakan Warna Aksen */
+  background: var(--accent);
+
   border: none; padding: 16px; border-radius: 16px;
   color: white; font-weight: 700; font-size: 16px;
   cursor: pointer; transition: 0.3s;
-  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   display: flex; justify-content: center; align-items: center;
 }
 .btn-primary-auth:hover:not(:disabled) {
-  transform: translateY(-3px); box-shadow: 0 15px 35px rgba(168, 85, 247, 0.5);
+  transform: translateY(-3px); opacity: 0.9;
 }
 .btn-primary-auth:disabled { opacity: 0.7; cursor: not-allowed; }
 
-.divider { display: flex; align-items: center; margin: 25px 0; color: rgba(255,255,255,0.4); font-size: 13px; }
-.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+.divider {
+  display: flex; align-items: center; margin: 25px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.divider::before, .divider::after {
+  content: ""; flex: 1; height: 1px;
+  background: var(--card-border);
+}
 .divider span { padding: 0 15px; }
 
 /* GOOGLE BUTTON (LOGO ASLI) */
 .btn-google {
-  background: white; /* Background putih agar logo G terlihat jelas */
-  border: none;
+  background: white; /* Tetap putih agar logo Google terlihat jelas */
+  border: 1px solid #ddd;
   color: #333; padding: 14px; border-radius: 16px;
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
   font-size: 15px; font-weight: 600; transition: 0.3s; width: 100%;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,255,255,0.15); }
+.btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 .google-logo-img { width: 20px; height: 20px; }
 
-.auth-footer { margin-top: 30px; font-size: 14px; color: rgba(255,255,255,0.6); }
-.auth-footer a { color: #d946ef; text-decoration: none; font-weight: 700; margin-left: 5px; }
-.auth-footer a:hover { color: white; }
+.auth-footer {
+  margin-top: 30px; font-size: 14px;
+  color: var(--text-muted);
+}
+.auth-footer a {
+  color: var(--accent);
+  text-decoration: none; font-weight: 700; margin-left: 5px;
+}
+.auth-footer a:hover { color: var(--text-main); }
 
 .error-msg {
-  background: rgba(239, 68, 68, 0.1); color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1); color: #ef4444;
   padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 15px; border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
