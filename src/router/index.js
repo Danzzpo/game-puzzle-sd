@@ -5,7 +5,6 @@ import RegisterView from '../views/RegisterView.vue'
 import PuzzlesView from '../views/PuzzlesView.vue'
 import PopularView from '../views/PopularView.vue'
 import CategoriesView from '../views/CategoriesView.vue'
-// 1. Import View Baru (yang akan kita buat)
 import GameView from '../views/GameView.vue'
 
 const router = createRouter({
@@ -17,7 +16,7 @@ const router = createRouter({
     { path: '/puzzles', name: 'puzzles', component: PuzzlesView },
     { path: '/popular', name: 'popular', component: PopularView },
     { path: '/categories', name: 'categories', component: CategoriesView },
-    // 2. Daftarkan Rute Game
+    
     {
       path: '/game',
       name: 'game',
