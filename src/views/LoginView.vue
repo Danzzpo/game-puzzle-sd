@@ -1,6 +1,11 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+// Import Ikon Phosphor (PhGoogleLogo dihapus karena pakai gambar asli)
+import {
+  PhEnvelope, PhLockKey, PhArrowLeft,
+  PhStar, PhPlanet
+} from '@phosphor-icons/vue';
 
 const router = useRouter();
 const emailInput = ref('');
@@ -8,44 +13,33 @@ const passwordInput = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-// --- DATA AKUN (Tetap ada di kodingan, tapi tidak ditampilkan) ---
+// --- DATA AKUN DEMO ---
 const DEMO_USER = {
   email: 'admin@puzzle.com',
   password: '123'
 };
 
 const handleLogin = () => {
-  // 1. Reset Error
   errorMessage.value = '';
 
-  // 2. Validasi Input Kosong
   if (!emailInput.value || !passwordInput.value) {
     errorMessage.value = "Email dan Password wajib diisi!";
     return;
   }
 
-  // 3. Validasi Format Email Sederhana
-  if (!emailInput.value.includes('@') || !emailInput.value.includes('.')) {
-    errorMessage.value = "Format email tidak valid.";
-    return;
-  }
-
-  // 4. Mulai Loading
+  // Simulasi Loading
   isLoading.value = true;
 
   setTimeout(() => {
-    // 5. Cek Kesesuaian Data
     if (emailInput.value === DEMO_USER.email && passwordInput.value === DEMO_USER.password) {
-      // BERHASIL
       const name = emailInput.value.split('@')[0];
       const cleanName = name.charAt(0).toUpperCase() + name.slice(1);
 
       localStorage.setItem('puzzleUser', cleanName);
       localStorage.setItem('puzzleTheme', 'dark');
 
-      router.push('/'); // Pindah ke Home
+      router.push('/');
     } else {
-      // GAGAL
       errorMessage.value = "Email atau Password salah!";
       isLoading.value = false;
     }
@@ -55,137 +49,271 @@ const handleLogin = () => {
 
 <template>
   <div class="auth-page">
-    <router-link to="/" class="back-link">← Kembali ke Beranda</router-link>
 
-    <div class="auth-card">
-      <h2>Selamat Datang Kembali</h2>
-      <p class="subtitle">Masuk untuk melanjutkan permainan.</p>
+    <div class="blobs-container">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
 
-      <div class="social-buttons">
-        <button class="btn-social google">
-          <span class="icon-text">G</span> Masuk dengan Google
+    <div class="floating-decorations">
+      <PhStar class="decor-item d1" weight="fill" />
+      <PhPlanet class="decor-item d2" weight="duotone" />
+      <div class="circle c1"></div>
+      <div class="circle c2"></div>
+    </div>
+
+    <div class="header-nav">
+      <router-link to="/" class="btn-back-pill">
+        <PhArrowLeft weight="bold" :size="20" />
+        <span>Kembali ke Beranda</span>
+      </router-link>
+    </div>
+
+    <div class="auth-card animate-enter">
+
+      <div class="card-header">
+        <h2>Selamat Datang</h2>
+        <p class="subtitle">Masuk untuk melanjutkan permainan.</p>
+      </div>
+
+      <form @submit.prevent="handleLogin" class="auth-form">
+
+        <div class="input-group">
+          <PhEnvelope :size="22" class="input-icon" />
+          <input
+            v-model="emailInput"
+            type="email"
+            placeholder="Alamat Email"
+            required
+          />
+        </div>
+
+        <div class="input-group">
+          <PhLockKey :size="22" class="input-icon" />
+          <input
+            v-model="passwordInput"
+            type="password"
+            placeholder="Kata Sandi"
+            required
+          />
+        </div>
+
+        <div class="extra-options">
+          <label class="remember-me">
+            <input type="checkbox"> Ingat Saya
+          </label>
+          <a href="#" class="forgot-link">Lupa Sandi?</a>
+        </div>
+
+        <button type="submit" class="btn-primary-auth" :disabled="isLoading">
+          <span v-if="isLoading" class="loader"></span>
+          <span v-else>Masuk Sekarang</span>
         </button>
-      </div>
 
-      <div class="divider"><span>atau login manual</span></div>
+      </form>
 
-      <div class="form-group">
-        <label>Alamat Email</label>
-        <input
-          v-model="emailInput"
-          type="email"
-          placeholder="Contoh: admin@puzzle.com"
-          @keyup.enter="handleLogin"
+      <transition name="shake">
+        <p v-if="errorMessage" class="error-msg">
+          ⚠️ {{ errorMessage }}
+        </p>
+      </transition>
+
+      <div class="divider"><span>Atau lanjutkan dengan</span></div>
+
+      <button class="btn-google">
+        <img
+          src="https://www.svgrepo.com/show/475656/google-color.svg"
+          alt="Google Logo"
+          class="google-logo-img"
         />
-      </div>
-
-      <div class="form-group">
-        <label>Kata Sandi</label>
-        <input
-          v-model="passwordInput"
-          type="password"
-          placeholder="Masukkan kata sandi"
-          @keyup.enter="handleLogin"
-        />
-      </div>
-
-      <div class="cloudflare-mock">
-        <div class="check-circle">✔</div>
-        <span class="cf-text">Verifikasi Manusia</span>
-        <span class="cf-logo">CLOUDFLARE</span>
-      </div>
-
-      <button
-        class="btn-primary-auth"
-        @click="handleLogin"
-        :disabled="isLoading"
-        :class="{ 'btn-loading': isLoading }"
-      >
-        <span v-if="isLoading">Memuat... ⏳</span>
-        <span v-else>➔ Masuk</span>
+        <span>Google</span>
       </button>
 
-      <p v-if="errorMessage" class="error-msg">⚠️ {{ errorMessage }}</p>
-
       <div class="auth-footer">
-        <span>Belum punya akun? <router-link to="/daftar">Buat Akun</router-link></span>
-        <a href="#" class="forgot-link">Lupa kata sandi?</a>
+        Belum punya akun? <router-link to="/daftar">Daftar Gratis</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* --- SETUP GLOBAL --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* --- CONTAINER UTAMA --- */
 .auth-page {
-  min-height: 100vh;
+  height: 100vh; width: 100vw;
   display: flex; align-items: center; justify-content: center;
-  background-color: #0f0c16;
-  background-image: radial-gradient(circle at 50% 50%, rgba(45, 27, 78, 0.8) 0%, rgba(15, 12, 22, 1) 70%);
-  font-family: 'Poppins', sans-serif; color: white; position: relative;
+  background-color: #0f0518;
+  font-family: 'Poppins', sans-serif; color: white;
+  position: relative; overflow: hidden;
 }
 
-.back-link { position: absolute; top: 30px; left: 30px; color: #a0a0b0; text-decoration: none; font-size: 14px; transition: color 0.3s; }
-.back-link:hover { color: white; }
+/* --- BACKGROUND BLOBS --- */
+.blobs-container {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.4;
+  animation: floatBlob 15s infinite alternate ease-in-out;
+}
+.blob-1 { top: -20%; left: -10%; width: 600px; height: 600px; background: #7c3aed; }
+.blob-2 { bottom: -20%; right: -10%; width: 500px; height: 500px; background: #db2777; animation-delay: -5s; }
 
-/* CARD */
+@keyframes floatBlob {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, 50px) scale(1.1); }
+}
+
+/* --- DEKORASI --- */
+.floating-decorations {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.decor-item { position: absolute; opacity: 0.3; animation: floatItem 8s infinite ease-in-out; }
+.d1 { top: 15%; right: 20%; font-size: 3rem; color: #fbbf24; animation-duration: 6s; }
+.d2 { bottom: 15%; left: 10%; font-size: 4rem; color: #a855f7; animation-duration: 9s; }
+
+.circle { position: absolute; border-radius: 50%; background: white; opacity: 0.05; }
+.c1 { width: 100px; height: 100px; top: 10%; left: 30%; }
+.c2 { width: 50px; height: 50px; bottom: 30%; right: 10%; }
+
+@keyframes floatItem {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* --- TOMBOL KEMBALI --- */
+.header-nav {
+  position: absolute; top: 25px; left: 25px; z-index: 10;
+}
+.btn-back-pill {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 20px; border-radius: 50px;
+  color: white; text-decoration: none; font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.btn-back-pill:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(5px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* --- CARD LOGIN --- */
 .auth-card {
   width: 100%; max-width: 400px;
-  background: rgba(20, 15, 30, 0.7); backdrop-filter: blur(10px);
-  padding: 40px; border-radius: 16px; border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 0 50px rgba(139, 92, 246, 0.1); text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  z-index: 5;
+  position: relative;
+  /* Animasi float dihapus, ganti dengan entrance saja */
 }
+.animate-enter { animation: fadeInUp 0.8s ease-out; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 
-h2 { margin: 0 0 10px; font-size: 26px; font-weight: 700; color: #fff; }
-.subtitle { color: #888; font-size: 14px; margin-bottom: 20px; }
-
-/* Social & Divider */
-.social-buttons { display: flex; flex-direction: column; gap: 10px; }
-.btn-social { background: transparent; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
-.btn-social:hover { border-color: #ff8a65; }
-.icon-text { color: #ea4335; font-weight: bold; }
-.divider { display: flex; align-items: center; margin: 20px 0; color: #555; font-size: 12px; }
-.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #333; }
-.divider span { padding: 0 10px; }
-
-/* Form */
-.form-group { text-align: left; margin-bottom: 15px; }
-.form-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
-.form-group input {
-  width: 100%; padding: 12px; box-sizing: border-box; background: #0a0810;
-  border: 1px solid #333; border-radius: 8px; color: white; outline: none; transition: 0.3s;
+/* HEADER CARD */
+.card-header { margin-bottom: 30px; }
+.icon-glow {
+  width: 70px; height: 70px;
+  background: linear-gradient(135deg, #d946ef, #a855f7);
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 30px rgba(217, 70, 239, 0.4);
+  transform: rotate(-10deg);
 }
-.form-group input:focus { border-color: #8b5cf6; }
+h2 { font-size: 26px; font-weight: 800; margin: 0; color: white; letter-spacing: 0.5px; }
+.subtitle { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 8px; }
 
-/* Cloudflare Mock */
-.cloudflare-mock {
-  background: #222; border: 1px solid #444; padding: 10px 15px; border-radius: 6px;
-  display: flex; align-items: center; gap: 10px; margin-bottom: 20px; cursor: default;
+/* --- INPUT FIELDS --- */
+.auth-form { display: flex; flex-direction: column; gap: 20px; }
+
+.input-group {
+  position: relative;
+  background: rgba(0,0,0,0.2); border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; padding: 0 18px;
+  transition: 0.3s;
 }
-.check-circle { width: 20px; height: 20px; background: #00c853; border-radius: 50%; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; }
-.cf-logo { margin-left: auto; font-size: 9px; color: #888; }
+.input-group:focus-within {
+  border-color: #d946ef; box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.15);
+  background: rgba(0,0,0,0.3); transform: scale(1.02);
+}
+.input-icon { color: rgba(255,255,255,0.5); }
+.input-group input {
+  width: 100%; padding: 16px 12px;
+  background: transparent; border: none; outline: none;
+  color: white; font-size: 15px; font-weight: 500;
+}
+.input-group input::placeholder { color: rgba(255,255,255,0.3); }
 
-/* Button & Error */
+/* EXTRA OPTIONS */
+.extra-options {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 5px;
+}
+.remember-me { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.forgot-link { color: #d946ef; text-decoration: none; font-weight: 600; transition: 0.3s; }
+.forgot-link:hover { color: #f0abfc; text-decoration: underline; }
+
+/* BUTTONS */
 .btn-primary-auth {
-  width: 100%; background: linear-gradient(90deg, #ff8a65, #ff6d00);
-  border: none; padding: 14px; border-radius: 8px; color: white; font-weight: bold;
-  font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 109, 0, 0.3);
-  margin-bottom: 15px; transition: transform 0.2s, opacity 0.2s;
+  background: linear-gradient(135deg, #d946ef, #a855f7);
+  border: none; padding: 16px; border-radius: 16px;
+  color: white; font-weight: 700; font-size: 16px;
+  cursor: pointer; transition: 0.3s;
+  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+  display: flex; justify-content: center; align-items: center;
 }
-.btn-primary-auth:hover:not(:disabled) { transform: translateY(-2px); }
+.btn-primary-auth:hover:not(:disabled) {
+  transform: translateY(-3px); box-shadow: 0 15px 35px rgba(168, 85, 247, 0.5);
+}
 .btn-primary-auth:disabled { opacity: 0.7; cursor: not-allowed; }
-.btn-loading { background: #444; box-shadow: none; }
 
-.error-msg { color: #ff5252; font-size: 13px; margin-bottom: 15px; animation: shake 0.3s; }
+.divider { display: flex; align-items: center; margin: 25px 0; color: rgba(255,255,255,0.4); font-size: 13px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+.divider span { padding: 0 15px; }
 
-/* Footer */
-.auth-footer { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #888; }
-.auth-footer a { color: #ff8a65; text-decoration: none; font-weight: 500; }
-.auth-footer a:hover { text-decoration: underline; }
+/* GOOGLE BUTTON (LOGO ASLI) */
+.btn-google {
+  background: white; /* Background putih agar logo G terlihat jelas */
+  border: none;
+  color: #333; padding: 14px; border-radius: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-size: 15px; font-weight: 600; transition: 0.3s; width: 100%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,255,255,0.15); }
+.google-logo-img { width: 20px; height: 20px; }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+.auth-footer { margin-top: 30px; font-size: 14px; color: rgba(255,255,255,0.6); }
+.auth-footer a { color: #d946ef; text-decoration: none; font-weight: 700; margin-left: 5px; }
+.auth-footer a:hover { color: white; }
+
+.error-msg {
+  background: rgba(239, 68, 68, 0.1); color: #fca5a5;
+  padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 15px; border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.loader {
+  width: 20px; height: 20px; border: 3px solid #fff;
+  border-bottom-color: transparent; border-radius: 50%;
+  display: inline-block; animation: rotation 1s linear infinite;
+}
+@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .auth-card { padding: 30px 20px; width: 90%; }
+  .header-nav { top: 20px; left: 20px; }
+  h2 { font-size: 22px; }
 }
 </style>
