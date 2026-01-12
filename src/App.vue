@@ -1,5 +1,11 @@
 <script setup>
 import { RouterView } from 'vue-router'
+// TAMBAHKAN INI: Import useDark dari VueUse
+import { useDark } from '@vueuse/core'
+
+// TAMBAHKAN INI: Inisialisasi tema saat aplikasi dimuat
+// Ini otomatis mengecek preferensi sistem & localStorage
+useDark();
 </script>
 
 <template>
@@ -26,10 +32,11 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden; /* Mencegah scroll horizontal */
 }
 
 /* =========================================
-   2. DATABASE WARNA
+   2. DATABASE WARNA (GLOBAL VARIABLES)
    ========================================= */
 
 /* A. TEMA TERANG (DEFAULT / LIGHT MODE) */
@@ -58,6 +65,7 @@ body {
 }
 
 /* B. TEMA GELAP (DARK MODE - Override) */
+/* Class 'dark' ini akan otomatis ditambahkan oleh useDark() */
 html.dark {
   --bg-color: #0f0518;
   --bg-gradient: radial-gradient(circle at 50% 0%, #2e1065 0%, #0f0518 80%);
@@ -81,7 +89,7 @@ html.dark {
   --blob-opacity: 0.4;
 }
 
-/* Scrollbar */
+/* Scrollbar Custom */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; opacity: 0.5; }
