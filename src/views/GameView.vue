@@ -45,55 +45,34 @@ onMounted(() => {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100dvh; /* Dynamic Height untuk Mobile */
+  height: 100dvh;
 
-  /* MENGAMBIL WARNA DARI APP.VUE */
+  /* WARNA & TRANSISI (KUNCI AGAR SELARAS) */
   background-color: var(--bg-color);
   color: var(--text-main);
 
-  /* Z-Index tinggi untuk menutupi Navbar Home */
-  z-index: 99999;
+  /* Samakan durasi transisi ini dengan App.vue agar berubah bareng */
+  transition: background-color 0.3s ease, color 0.3s ease;
 
+  z-index: 99999; /* Menutupi Navbar Home */
   overflow: hidden;
   display: flex;
   flex-direction: column;
-
-  /* Transisi halus saat ganti tema */
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ========================
-   BLOBS DEKORASI (SINKRON)
+   BLOBS DEKORASI
    ======================== */
 .blobs-container {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
 }
 .blob {
-  position: absolute; border-radius: 50%;
-  filter: blur(80px);
-  opacity: var(--blob-opacity); /* Ikut opacity tema */
-  animation: floatBlob 10s infinite alternate ease-in-out;
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--blob-opacity);
+  transition: opacity 0.3s ease; /* Transisi opacity blob saat ganti tema */
 }
-
-/* Warna Blob mengikuti variabel global */
-.b1 {
-  top: -10%; left: -10%; width: 50vw; height: 50vw;
-  background: var(--accent); /* Warna Ungu Tema */
-}
-.b2 {
-  bottom: -10%; right: -10%; width: 40vw; height: 40vw;
-  background: #3b82f6; /* Biru */
-}
-.b3 {
-  top: 40%; left: 30%; width: 30vw; height: 30vw;
-  background: #ec4899; /* Pink */
-  opacity: 0.2;
-}
-
-@keyframes floatBlob {
-  from { transform: translate(0, 0); }
-  to { transform: translate(20px, 30px); }
-}
+.b1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--accent); }
+.b2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: #3b82f6; }
+.b3 { top: 40%; left: 30%; width: 30vw; height: 30vw; background: #ec4899; opacity: 0.2; }
 
 /* ========================
    LAYOUT GAME
@@ -101,7 +80,7 @@ onMounted(() => {
 .game-container {
   flex: 1;
   position: relative;
-  z-index: 10; /* Di atas blobs */
+  z-index: 10;
   width: 100%;
   height: 100%;
   display: flex;
@@ -110,7 +89,7 @@ onMounted(() => {
 }
 
 /* ========================
-   ANIMASI MASUK
+   ANIMASI MASUK (POP-UP)
    ======================== */
 .zoom-fade-enter-active {
   transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);

@@ -15,6 +15,7 @@ const router = useRouter();
 const sfxMove = new Audio('https://cdn.freesound.org/previews/613/613867_11672322-lq.mp3');
 const sfxWin = new Audio('https://cdn.freesound.org/previews/270/270402_5123851-lq.mp3');
 
+
 const playSound = (audio) => {
   audio.currentTime = 0;
   audio.volume = 0.5;
